@@ -55,8 +55,8 @@ func tempMkFile(t *testing.T, dir string) string {
 }
 
 // newWatcher initializes an fsnotify Watcher instance.
-func newWatcher(t *testing.T) *Watcher {
-	watcher, err := NewWatcher()
+func newWatcher(t *testing.T) *fsnWatcher {
+	watcher, err := fsnNewWatcher()
 	if err != nil {
 		t.Fatalf("NewWatcher() failed: %s", err)
 	}
@@ -64,7 +64,7 @@ func newWatcher(t *testing.T) *Watcher {
 }
 
 // addWatch adds a watch for a directory
-func addWatch(t *testing.T, watcher *Watcher, dir string) {
+func addWatch(t *testing.T, watcher *fsnWatcher, dir string) {
 	if err := watcher.Add(dir); err != nil {
 		t.Fatalf("watcher.Add(%q) failed: %s", dir, err)
 	}

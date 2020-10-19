@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-type ConfigurationSection map[string]string
+type configurationSection map[string]string
 
-type Configuration map[string]ConfigurationSection
+type Configuration map[string]configurationSection
 
 func (c *Configuration) Get(section, key string) string {
 	return (*c)[section][key]
 }
 
-type LineType string
+type lineType string
 
-type ConfigurationLine struct {
-	LineType LineType
+type configurationLine struct {
+	LineType lineType
 	Key      string
 	Value    string
 }
@@ -44,7 +44,7 @@ func ParseFromString(iniContent string) (Configuration, error) {
 }
 
 func ParseFromStringWithCommentDelimiter(iniContent, commentDelimiter string) (Configuration, error) {
-	sections := make(map[string]ConfigurationSection)
+	sections := make(map[string]configurationSection)
 
 	currentSection := ""
 	sections[currentSection] = make(map[string]string)
@@ -63,7 +63,7 @@ func ParseFromStringWithCommentDelimiter(iniContent, commentDelimiter string) (C
 	return sections, nil
 }
 
-func ParseLine(iniLine, commentDelimiter string) ConfigurationLine {
+func ParseLine(iniLine, commentDelimiter string) configurationLine {
 	// remove comments
 	iniLine = strings.SplitN(iniLine, commentDelimiter, 2)[0]
 
@@ -73,14 +73,14 @@ func ParseLine(iniLine, commentDelimiter string) ConfigurationLine {
 	sectionFound := sectionRegExp.FindStringSubmatch(iniLine)
 
 	if len(sectionFound) == 2 {
-		return ConfigurationLine{lineSection, "", sectionFound[1]}
+		return configurationLine{lineSection, "", sectionFound[1]}
 	}
 
 	keyValueFound := keyValueRegExp.FindStringSubmatch(iniLine)
 
 	if len(keyValueFound) == 3 {
-		return ConfigurationLine{lineKeyValue, keyValueFound[1], keyValueFound[2]}
+		return configurationLine{lineKeyValue, keyValueFound[1], keyValueFound[2]}
 	}
 
-	return ConfigurationLine{lineBlank, "", ""}
+	return configurationLine{lineBlank, "", ""}
 }

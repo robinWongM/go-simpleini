@@ -38,7 +38,7 @@ test3=test4
 
 	file.Seek(0, 0)
 
-	got, err := ReadFromReader(file)
+	got, err := readFromReader(file)
 	if err != nil {
 		t.Errorf("ReadFromFile error, %e", err)
 	} else if got != expected {
@@ -54,7 +54,7 @@ test3=test4
 `
 	reader := strings.NewReader(expected)
 
-	got, err := ReadFromReader(reader)
+	got, err := readFromReader(reader)
 	if err != nil {
 		t.Errorf("ReadFromReader error, %e", err)
 	} else if got != expected {

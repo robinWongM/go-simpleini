@@ -19,8 +19,8 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// Watcher watches a set of files, delivering events to a channel.
-type Watcher struct {
+// fsnWatcher watches a set of files, delivering events to a channel.
+type fsnWatcher struct {
 	Events   chan fsnEvent
 	Errors   chan error
 	mu       sync.Mutex // Map access
@@ -33,7 +33,7 @@ type Watcher struct {
 }
 
 // NewWatcher establishes a new watcher with the underlying OS and begins waiting for events.
-func NewWatcher() (*Watcher, error) {
+func fsnNewWatcher() (*fsnWatcher, error) {
 	// Create inotify fd
 	fd, errno := unix.InotifyInit1(unix.IN_CLOEXEC)
 	if fd == -1 {
@@ -45,7 +45,7 @@ func NewWatcher() (*Watcher, error) {
 		unix.Close(fd)
 		return nil, err
 	}
-	w := &Watcher{
+	w := &fsnWatcher{
 		fd:       fd,
 		poller:   poller,
 		watches:  make(map[string]*watch),
@@ -60,7 +60,7 @@ func NewWatcher() (*Watcher, error) {
 	return w, nil
 }
 
-func (w *Watcher) isClosed() bool {
+func (w *fsnWatcher) isClosed() bool {
 	select {
 	case <-w.done:
 		return true
@@ -70,7 +70,7 @@ func (w *Watcher) isClosed() bool {
 }
 
 // Close removes all watches and closes the events channel.
-func (w *Watcher) Close() error {
+func (w *fsnWatcher) Close() error {
 	if w.isClosed() {
 		return nil
 	}
@@ -88,7 +88,7 @@ func (w *Watcher) Close() error {
 }
 
 // Add starts watching the named file or directory (non-recursively).
-func (w *Watcher) Add(name string) error {
+func (w *fsnWatcher) Add(name string) error {
 	name = filepath.Clean(name)
 	if w.isClosed() {
 		return errors.New("inotify instance already closed")
@@ -123,7 +123,7 @@ func (w *Watcher) Add(name string) error {
 }
 
 // Remove stops watching the named file or directory (non-recursively).
-func (w *Watcher) Remove(name string) error {
+func (w *fsnWatcher) Remove(name string) error {
 	name = filepath.Clean(name)
 
 	// Fetch the watch.
@@ -169,7 +169,7 @@ type watch struct {
 
 // readEvents reads from the inotify file descriptor, converts the
 // received events into Event objects and sends them via the Events channel
-func (w *Watcher) readEvents() {
+func (w *fsnWatcher) readEvents() {
 	var (
 		buf   [unix.SizeofInotifyEvent * 4096]byte // Buffer for a maximum of 4096 raw events
 		n     int                                  // Number of bytes read with read()

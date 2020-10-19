@@ -17,9 +17,9 @@ import (
 	"unsafe"
 )
 
-// Watcher watches a set of files, delivering events to a channel.
-type Watcher struct {
-	Events   chan Event
+// fsnWatcher watches a set of files, delivering events to a channel.
+type fsnWatcher struct {
+	Events   chan fsnEvent
 	Errors   chan error
 	isClosed bool           // Set to true when Close() is first called
 	mu       sync.Mutex     // Map access
@@ -29,17 +29,17 @@ type Watcher struct {
 	quit     chan chan<- error
 }
 
-// NewWatcher establishes a new watcher with the underlying OS and begins waiting for events.
-func NewWatcher() (*Watcher, error) {
+// fsnNewWatcher establishes a new watcher with the underlying OS and begins waiting for events.
+func fsnNewWatcher() (*fsnWatcher, error) {
 	port, e := syscall.CreateIoCompletionPort(syscall.InvalidHandle, 0, 0, 0)
 	if e != nil {
 		return nil, os.NewSyscallError("CreateIoCompletionPort", e)
 	}
-	w := &Watcher{
+	w := &fsnWatcher{
 		port:    port,
 		watches: make(watchMap),
 		input:   make(chan *input, 1),
-		Events:  make(chan Event, 50),
+		Events:  make(chan fsnEvent, 50),
 		Errors:  make(chan error),
 		quit:    make(chan chan<- error, 1),
 	}
@@ -48,7 +48,7 @@ func NewWatcher() (*Watcher, error) {
 }
 
 // Close removes all watches and closes the events channel.
-func (w *Watcher) Close() error {
+func (w *fsnWatcher) Close() error {
 	if w.isClosed {
 		return nil
 	}
@@ -64,7 +64,7 @@ func (w *Watcher) Close() error {
 }
 
 // Add starts watching the named file or directory (non-recursively).
-func (w *Watcher) Add(name string) error {
+func (w *fsnWatcher) Add(name string) error {
 	if w.isClosed {
 		return errors.New("watcher already closed")
 	}
@@ -82,7 +82,7 @@ func (w *Watcher) Add(name string) error {
 }
 
 // Remove stops watching the the named file or directory (non-recursively).
-func (w *Watcher) Remove(name string) error {
+func (w *fsnWatcher) Remove(name string) error {
 	in := &input{
 		op:    opRemoveWatch,
 		path:  filepath.Clean(name),
@@ -120,21 +120,21 @@ const (
 )
 
 func newEvent(name string, mask uint32) Event {
-	e := Event{Name: name}
+	e := fsnEvent{Name: name}
 	if mask&sysFSCREATE == sysFSCREATE || mask&sysFSMOVEDTO == sysFSMOVEDTO {
-		e.Op |= Create
+		e.Op |= fsnCreate
 	}
 	if mask&sysFSDELETE == sysFSDELETE || mask&sysFSDELETESELF == sysFSDELETESELF {
-		e.Op |= Remove
+		e.Op |= fsnRemove
 	}
 	if mask&sysFSMODIFY == sysFSMODIFY {
-		e.Op |= Write
+		e.Op |= fsnWrite
 	}
 	if mask&sysFSMOVE == sysFSMOVE || mask&sysFSMOVESELF == sysFSMOVESELF || mask&sysFSMOVEDFROM == sysFSMOVEDFROM {
-		e.Op |= Rename
+		e.Op |= fsnRename
 	}
 	if mask&sysFSATTRIB == sysFSATTRIB {
-		e.Op |= Chmod
+		e.Op |= fsnChmod
 	}
 	return e
 }
@@ -174,7 +174,7 @@ type watch struct {
 type indexMap map[uint64]*watch
 type watchMap map[uint32]indexMap
 
-func (w *Watcher) wakeupReader() error {
+func (w *fsnWatcher) wakeupReader() error {
 	e := syscall.PostQueuedCompletionStatus(w.port, 0, 0, nil)
 	if e != nil {
 		return os.NewSyscallError("PostQueuedCompletionStatus", e)
@@ -237,7 +237,7 @@ func (m watchMap) set(ino *inode, watch *watch) {
 }
 
 // Must run within the I/O thread.
-func (w *Watcher) addWatch(pathname string, flags uint64) error {
+func (w *fsnWatcher) addWatch(pathname string, flags uint64) error {
 	dir, err := getDir(pathname)
 	if err != nil {
 		return err
@@ -286,7 +286,7 @@ func (w *Watcher) addWatch(pathname string, flags uint64) error {
 }
 
 // Must run within the I/O thread.
-func (w *Watcher) remWatch(pathname string) error {
+func (w *fsnWatcher) remWatch(pathname string) error {
 	dir, err := getDir(pathname)
 	if err != nil {
 		return err
@@ -313,7 +313,7 @@ func (w *Watcher) remWatch(pathname string) error {
 }
 
 // Must run within the I/O thread.
-func (w *Watcher) deleteWatch(watch *watch) {
+func (w *fsnWatcher) deleteWatch(watch *watch) {
 	for name, mask := range watch.names {
 		if mask&provisional == 0 {
 			w.sendEvent(filepath.Join(watch.path, name), mask&sysFSIGNORED)
@@ -329,7 +329,7 @@ func (w *Watcher) deleteWatch(watch *watch) {
 }
 
 // Must run within the I/O thread.
-func (w *Watcher) startRead(watch *watch) error {
+func (w *fsnWatcher) startRead(watch *watch) error {
 	if e := syscall.CancelIo(watch.ino.handle); e != nil {
 		w.Errors <- os.NewSyscallError("CancelIo", e)
 		w.deleteWatch(watch)
@@ -370,7 +370,7 @@ func (w *Watcher) startRead(watch *watch) error {
 // readEvents reads from the I/O completion port, converts the
 // received events into Event objects and sends them via the Events channel.
 // Entry point to the I/O thread.
-func (w *Watcher) readEvents() {
+func (w *fsnWatcher) readEvents() {
 	var (
 		n, key uint32
 		ov     *syscall.Overlapped
@@ -514,7 +514,7 @@ func (w *Watcher) readEvents() {
 	}
 }
 
-func (w *Watcher) sendEvent(name string, mask uint64) bool {
+func (w *fsnWatcher) sendEvent(name string, mask uint64) bool {
 	if mask == 0 {
 		return false
 	}

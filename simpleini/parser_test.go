@@ -63,17 +63,17 @@ func testParseLine(t *testing.T, commentDelimiter string) {
 	testCases := []struct {
 		name     string
 		iniLine  string
-		expected ConfigurationLine
+		expected configurationLine
 	}{
-		{"key value pair line", "app_mode = development", ConfigurationLine{lineKeyValue, "app_mode", "development"}},
-		{"key value pair line without spaces", "app_mode=production", ConfigurationLine{lineKeyValue, "app_mode", "production"}},
-		{"value contains =", "env=NODE_ENV=production", ConfigurationLine{lineKeyValue, "env", "NODE_ENV=production"}},
-		{"comment", "; test", ConfigurationLine{lineBlank, "", ""}},
-		{"comment contains key pair line", commentDelimiter + "app_mode = development", ConfigurationLine{lineBlank, "", ""}},
-		{"key pair line with comment", "app_mode = development " + commentDelimiter + "set app_mode", ConfigurationLine{lineKeyValue, "app_mode", "development"}},
-		{"section", "[section]", ConfigurationLine{lineSection, "", "section"}},
-		{"comment contains section", commentDelimiter + "[section]", ConfigurationLine{lineBlank, "", ""}},
-		{"section with spaces", " [ test ]  ", ConfigurationLine{lineSection, "", "test"}},
+		{"key value pair line", "app_mode = development", configurationLine{lineKeyValue, "app_mode", "development"}},
+		{"key value pair line without spaces", "app_mode=production", configurationLine{lineKeyValue, "app_mode", "production"}},
+		{"value contains =", "env=NODE_ENV=production", configurationLine{lineKeyValue, "env", "NODE_ENV=production"}},
+		{"comment", "; test", configurationLine{lineBlank, "", ""}},
+		{"comment contains key pair line", commentDelimiter + "app_mode = development", configurationLine{lineBlank, "", ""}},
+		{"key pair line with comment", "app_mode = development " + commentDelimiter + "set app_mode", configurationLine{lineKeyValue, "app_mode", "development"}},
+		{"section", "[section]", configurationLine{lineSection, "", "section"}},
+		{"comment contains section", commentDelimiter + "[section]", configurationLine{lineBlank, "", ""}},
+		{"section with spaces", " [ test ]  ", configurationLine{lineSection, "", "test"}},
 	}
 
 	for _, testCase := range testCases {

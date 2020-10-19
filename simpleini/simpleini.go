@@ -6,16 +6,18 @@ import (
 	"os"
 )
 
+// Watch parses the given configuration file and watching its changes.
+// listener will be invoked when configuration file changes.
 func Watch(filename string, listener func(Configuration)) (Configuration, error) {
 	// Read file first
-	iniConf, err := ParseFromFile(filename)
+	iniConf, err := parseFromFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	// Start watch
 	watchFileChanges(filename, func() {
-		iniConf, err := ParseFromFile(filename)
+		iniConf, err := parseFromFile(filename)
 		if err != nil {
 			return
 		}
@@ -25,8 +27,8 @@ func Watch(filename string, listener func(Configuration)) (Configuration, error)
 	return iniConf, nil
 }
 
-func ParseFromFile(filename string) (Configuration, error) {
-	iniContent, err := ReadFromFile(filename)
+func parseFromFile(filename string) (Configuration, error) {
+	iniContent, err := readFromFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +41,7 @@ func ParseFromFile(filename string) (Configuration, error) {
 }
 
 func watchFileChanges(filename string, listener func()) error {
-	watcher, err := NewWatcher()
+	watcher, err := fsnNewWatcher()
 	if err != nil {
 		return err
 	}
@@ -72,17 +74,17 @@ func watchFileChanges(filename string, listener func()) error {
 	return nil
 }
 
-func ReadFromFile(filename string) (string, error) {
+func readFromFile(filename string) (string, error) {
 	file, err := os.Open(filename)
 	defer file.Close()
 
 	if err != nil {
 		return "", err
 	}
-	return ReadFromReader(file)
+	return readFromReader(file)
 }
 
-func ReadFromReader(reader io.Reader) (string, error) {
+func readFromReader(reader io.Reader) (string, error) {
 	if content, err := ioutil.ReadAll(reader); err == nil {
 		return string(content), nil
 	} else {
