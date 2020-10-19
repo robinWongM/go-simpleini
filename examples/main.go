@@ -3,17 +3,21 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"simpleini/simpleini"
+
+	"github.com/robinWongM/go-simpleini/simpleini"
 )
 
 func main() {
-	conf, err := simpleini.Watch("test.ini", func(c simpleini.Configuration) {
-		fmt.Printf("%v\n", c)
+	// Provide a listener func to deal with changes of .ini
+	conf, err := simpleini.Watch("test.ini", func(conf simpleini.Configuration) {
+		fmt.Printf("Reloaded. http_port = %s\n", conf.Get("server", "http_port"))
 	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%v\n", conf)
+
+	// Get(section, key)
+	fmt.Printf("Loaded. http_port = %s\n", conf.Get("server", "http_port"))
 
 	http.ListenAndServe(":8000", nil)
 }

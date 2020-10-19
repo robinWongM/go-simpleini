@@ -1,4 +1,4 @@
-module simpleini
+module github.com/robinWongM/go-simpleini
 
 go 1.15
 

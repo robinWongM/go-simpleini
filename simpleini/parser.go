@@ -8,8 +8,11 @@ import (
 
 type configurationSection map[string]string
 
+// Configuration provides a method `GET` to access configuration fields.
 type Configuration map[string]configurationSection
 
+// Get a configuration field by providing section name and key name.
+// The default section is "".
 func (c *Configuration) Get(section, key string) string {
 	return (*c)[section][key]
 }
