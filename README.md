@@ -1,6 +1,5 @@
 # simpleini
 ![GitHub Actions status](https://img.shields.io/github/workflow/status/robinWongM/go-simpleini/Test)
-codecov GoDoc Sourcegraph
 
 Package simpleini provides a simple way to read and reload `.ini` configuration files.
 
