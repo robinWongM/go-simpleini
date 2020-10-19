@@ -119,7 +119,7 @@ const (
 	sysFSQOVERFLOW = 0x4000
 )
 
-func newEvent(name string, mask uint32) Event {
+func newEvent(name string, mask uint32) fsnEvent {
 	e := fsnEvent{Name: name}
 	if mask&sysFSCREATE == sysFSCREATE || mask&sysFSMOVEDTO == sysFSMOVEDTO {
 		e.Op |= fsnCreate
