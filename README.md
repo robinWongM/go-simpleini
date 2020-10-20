@@ -4,26 +4,15 @@
 
 Package simpleini provides a simple way to read and reload `.ini` configuration files.
 
-## Usage
+## Installation
 
 ```bash
-go get github.com/robinWongM/go-simpleini/simpleini
+go get github.com/robinWongM/go-simpleini/simpleini@v0.1.0-alpha
 ```
 
-```golang
-func reloadConf(conf simpleini.Configuration) {
-  myNewValue := conf.Get("firstSection", "firstKey")
-}
+## Usgae
 
-conf, err := simpleini.Watch("test.ini", reloadConf)
-if err != nil {
-  // your error handling
-}
-
-myValue := conf.Get("firstSection", "firstKey")
-```
-
-For full example, please refer to [examples/main.go](https://github.com/robinWongM/go-simpleini/blob/main/examples/main.go)
+See [examples/main.go](https://github.com/robinWongM/go-simpleini/blob/main/examples/main.go)
 
 ## License
 This project is under MIT License. See the LICENSE file for the full license text.
