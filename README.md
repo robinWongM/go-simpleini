@@ -7,7 +7,7 @@ Package simpleini provides a simple way to read and reload `.ini` configuration 
 ## Installation
 
 ```bash
-go get github.com/robinWongM/go-simpleini/simpleini@v0.1.0-alpha
+go get github.com/robinWongM/go-simpleini/simpleini@v0.2.0-alpha
 ```
 
 ## Usgae
