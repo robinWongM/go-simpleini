@@ -36,7 +36,7 @@ enforce_domain = true`
 		{"server", "enforce_domain", "true"},
 	}
 
-	configuration, err := ParseFromStringWithCommentDelimiter(testIni, "#")
+	configuration, err := parseFromStringWithCommentDelimiter(testIni, "#")
 
 	if err != nil {
 		t.Errorf("ParseFromString failed, got error %e", err)
@@ -78,7 +78,7 @@ func testParseLine(t *testing.T, commentDelimiter string) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			parsedLine := ParseLine(testCase.iniLine, commentDelimiter)
+			parsedLine := parseLine(testCase.iniLine, commentDelimiter)
 
 			if !reflect.DeepEqual(testCase.expected, parsedLine) {
 				t.Errorf("expected %v, got %v", testCase.expected, parsedLine)

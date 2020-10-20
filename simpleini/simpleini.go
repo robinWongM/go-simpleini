@@ -1,3 +1,4 @@
+// Package simpleini provides a simple way to read and reload `.ini` configuration files.
 package simpleini
 
 import (
@@ -6,9 +7,14 @@ import (
 	"os"
 )
 
+// Listener interface defines a listener function.
+type Listener interface {
+	Listen(Configuration)
+}
+
 // Watch parses the given configuration file and watching its changes.
 // listener will be invoked when configuration file changes.
-func Watch(filename string, listener func(Configuration)) (Configuration, error) {
+func Watch(filename string, listener Listener) (Configuration, error) {
 	// Read file first
 	iniConf, err := parseFromFile(filename)
 	if err != nil {
@@ -21,7 +27,7 @@ func Watch(filename string, listener func(Configuration)) (Configuration, error)
 		if err != nil {
 			return
 		}
-		listener(iniConf)
+		listener.Listen(iniConf)
 	})
 
 	return iniConf, nil
@@ -33,14 +39,14 @@ func parseFromFile(filename string) (Configuration, error) {
 		return nil, err
 	}
 
-	iniConf, err := ParseFromString(iniContent)
+	iniConf, err := parseFromString(iniContent)
 	if err != nil {
 		return nil, err
 	}
 	return iniConf, nil
 }
 
-func watchFileChanges(filename string, listener func()) error {
+func watchFileChanges(filename string, callback func()) error {
 	watcher, err := fsnNewWatcher()
 	if err != nil {
 		return err
@@ -58,7 +64,7 @@ func watchFileChanges(filename string, listener func()) error {
 					return
 				}
 				if event.Op&fsnWrite == fsnWrite {
-					listener()
+					callback()
 				}
 			case err, ok := <-watcher.Errors:
 				if err != nil {

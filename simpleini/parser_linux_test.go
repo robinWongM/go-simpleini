@@ -33,7 +33,7 @@ enforce_domain = true`
 		{"server", "enforce_domain", "true"},
 	}
 
-	configuration, err := ParseFromString(testIni)
+	configuration, err := parseFromString(testIni)
 
 	if err != nil {
 		t.Errorf("ParseFromString failed, got error %e", err)

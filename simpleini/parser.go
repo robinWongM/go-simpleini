@@ -8,7 +8,7 @@ import (
 
 type configurationSection map[string]string
 
-// Configuration provides a method `GET` to access configuration fields.
+// Configuration provides a method `Get` to access configuration fields.
 type Configuration map[string]configurationSection
 
 // Get a configuration field by providing section name and key name.
@@ -42,18 +42,18 @@ func init() {
 	}
 }
 
-func ParseFromString(iniContent string) (Configuration, error) {
-	return ParseFromStringWithCommentDelimiter(iniContent, defaultCommentDelimiter)
+func parseFromString(iniContent string) (Configuration, error) {
+	return parseFromStringWithCommentDelimiter(iniContent, defaultCommentDelimiter)
 }
 
-func ParseFromStringWithCommentDelimiter(iniContent, commentDelimiter string) (Configuration, error) {
+func parseFromStringWithCommentDelimiter(iniContent, commentDelimiter string) (Configuration, error) {
 	sections := make(map[string]configurationSection)
 
 	currentSection := ""
 	sections[currentSection] = make(map[string]string)
 
 	for _, line := range strings.Split(iniContent, "\n") {
-		parsedLine := ParseLine(line, commentDelimiter)
+		parsedLine := parseLine(line, commentDelimiter)
 		switch parsedLine.LineType {
 		case lineSection:
 			currentSection = parsedLine.Value
@@ -66,7 +66,7 @@ func ParseFromStringWithCommentDelimiter(iniContent, commentDelimiter string) (C
 	return sections, nil
 }
 
-func ParseLine(iniLine, commentDelimiter string) configurationLine {
+func parseLine(iniLine, commentDelimiter string) configurationLine {
 	// remove comments
 	iniLine = strings.SplitN(iniLine, commentDelimiter, 2)[0]
 
