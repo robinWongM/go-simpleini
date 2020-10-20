@@ -21,12 +21,12 @@ pepsi=diet   ;gag
 		{"Application", "coke", ""},
 	}
 
-	configuration, err := ParseFromString(testIni)
+	configuration, err := parseFromString(testIni)
 
 	if err != nil {
 		t.Errorf("ParseFromString failed, got error %e", err)
 	}
-
+s
 	for _, testCase := range testCases {
 		got := configuration.Get(testCase.Section, testCase.Key)
 		expected := testCase.Value
